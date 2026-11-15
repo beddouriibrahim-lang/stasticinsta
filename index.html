@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Instagram Dashboard Editable Demo</title>
+  <style>
+    :root{
+      --bg:#05090c;
+      --panel:#0a0f14;
+      --card:#2b3138;
+      --card2:#11171d;
+      --line:#1e242b;
+      --track:#2b3138;
+      --text:#ffffff;
+      --muted:#a6adb7;
+      --muted2:#7e8792;
+      --accent:#f02bd7;
+      --accent-soft:#ef95ea;
+      --success:#21d46a;
+      --danger:#f45b6a;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif;overscroll-behavior-y:none}
+    body{min-height:100dvh}
+    .app{width:min(100%,600px);min-height:100dvh;margin:0 auto;background:var(--bg);position:relative;overflow-x:hidden}
+    .top-status{display:flex;justify-content:space-between;align-items:center;padding:20px 18px 8px;font-weight:800;font-size:22px}
+    .status-icons{display:flex;align-items:center;gap:8px;font-size:18px}
+    .signal{display:inline-flex;gap:2px;align-items:flex-end;height:13px}
+    .signal i{display:block;width:3px;background:#fff;border-radius:2px}
+    .signal i:nth-child(1){height:5px;opacity:.55}.signal i:nth-child(2){height:8px;opacity:.75}.signal i:nth-child(3){height:11px}
+    .battery{border:2px solid #fff;border-radius:5px;padding:1px 6px;font-size:14px;line-height:1.2;position:relative}
+    .battery:after{content:'';position:absolute;right:-4px;top:4px;width:2px;height:8px;background:#fff;border-radius:1px}
+    .header{display:grid;grid-template-columns:36px 1fr 72px;align-items:center;padding:6px 18px 8px}
+    .back{font-size:44px;line-height:.8;font-weight:300}
+    .header-title{font-size:24px;font-weight:800;text-align:center}
+    .header-actions{display:flex;justify-content:flex-end;gap:16px;font-size:28px}
+    .main-tabs{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--line);margin-top:4px}
+    .main-tab{background:none;border:0;color:#9aa2ae;font-size:18px;font-weight:800;padding:0 0 14px;position:relative;white-space:normal;line-height:1.05}
+    .main-tab.active{color:#fff}
+    .main-tab.active:after{content:'';position:absolute;left:10%;right:10%;bottom:0;height:3px;border-radius:2px;background:#fff}
+    .panel{display:none}
+    .panel.active{display:block}
+    .section{padding:22px 16px 0}
+    .section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:12px}
+    .section-title{font-size:26px;font-weight:900;letter-spacing:-.3px}
+    .period{font-size:20px;font-weight:700;color:#e9edf2}
+    .period small{font-size:18px;color:#cfd4da}
+    .home-summary-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:16px}
+    .card{background:var(--card);border-radius:18px;padding:18px;box-shadow:0 0 0 1px rgba(255,255,255,.02) inset}
+    .summary-large{min-height:298px;display:flex;flex-direction:column}
+    .summary-stack{display:grid;gap:16px}
+    .card-kicker{font-size:18px;font-weight:700;color:#d6dbe0;margin-bottom:12px}
+    .card-value{font-size:30px;font-weight:900;letter-spacing:-.4px}
+    .card-change{margin-top:8px;color:var(--success);font-weight:800;font-size:17px}
+    .card-change.negative{color:#c7ccd3}
+    .spark-wrap{margin-top:auto;padding-top:16px}
+    .spark-dates{display:flex;justify-content:space-between;color:#cdd4dc;font-size:13px;margin-top:6px}
+    .tools-box,.big-block{background:var(--panel);border-radius:22px;margin-top:18px;padding-bottom:18px}
+    .block-head{display:flex;justify-content:space-between;align-items:center;padding:18px 16px 10px}
+    .block-head .section-title{font-size:24px}
+    .chev{font-size:36px;color:#e1e4e8;line-height:1}
+    .tools-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:10px 16px 4px}
+    .tool-card{background:var(--card);border-radius:16px;min-height:120px;padding:16px 14px;display:flex;flex-direction:column;justify-content:space-between}
+    .tool-name{font-size:18px;font-weight:800;line-height:1.1}
+    .tool-icon{font-size:28px;color:#f2f5f8}
+    .tool-icon.danger{color:#ff6580}
+    .next-list{padding:2px 16px 4px}
+    .next-item{display:grid;grid-template-columns:64px 1fr 24px;align-items:center;gap:14px;padding:12px 0}
+    .thumb{width:64px;height:64px;border-radius:10px;background:linear-gradient(135deg,#4b5157,#1c2126);overflow:hidden;position:relative}
+    .thumb:before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.1),transparent 55%)}
+    .next-title{font-size:18px;font-weight:800;line-height:1.15}
+    .next-desc{font-size:15px;color:#d6dde4;line-height:1.2;margin-top:3px}
+    .arrow{font-size:30px;color:#cfd5dd;line-height:1}
+
+    .scroll-cards{display:flex;gap:12px;overflow-x:auto;padding:0 0 6px}
+    .scroll-cards::-webkit-scrollbar{display:none}
+    .metric-card{min-width:168px;background:var(--card);border-radius:16px;padding:18px 16px;border:2px solid transparent}
+    .metric-card.active{border-color:#fff}
+    .metric-label{font-size:17px;color:#d0d6dd;font-weight:700;margin-bottom:8px}
+    .metric-value{font-size:26px;font-weight:900;letter-spacing:-.3px}
+    .metric-change{font-size:15px;margin-top:8px;font-weight:800;color:var(--success)}
+    .metric-change.negative{color:#c7ccd3}
+    .chart-card{background:var(--panel);border-radius:22px;padding:16px;margin-top:10px}
+    .line-chart{position:relative;height:260px;margin-top:10px}
+    .line-grid{position:absolute;left:0;right:0;border-top:1px solid #28303a}
+    .g1{top:10px}.g2{top:110px}.g3{top:210px}
+    .axis-y{position:absolute;left:0;top:0;bottom:36px;width:54px;color:#bcc3cc;font-size:17px}
+    .axis-y span{position:absolute;left:0}
+    .axis-y span:nth-child(1){top:0}.axis-y span:nth-child(2){top:100px}.axis-y span:nth-child(3){top:200px}
+    .plot{position:absolute;left:56px;right:8px;top:0;bottom:28px}
+    .plot svg{width:100%;height:220px;overflow:visible}
+    .plot polyline{fill:none;stroke:var(--accent);stroke-width:7;stroke-linecap:round;stroke-linejoin:round}
+    .plot-dates{position:absolute;left:56px;right:8px;bottom:0;color:#c3c9d1;font-size:17px;display:flex;justify-content:space-between}
+    .plot-dates span:nth-child(2){transform:translateX(-18px)}
+
+    .subsection{padding:0 16px 0}
+    .subsection h3{font-size:24px;margin:20px 0 12px}
+    .legend{display:flex;gap:18px;align-items:center;color:#d7dce2;font-size:15px;margin-bottom:12px}
+    .dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:7px;vertical-align:1px}
+    .dot.followers{background:var(--accent)}
+    .dot.nonfollowers{background:var(--accent-soft)}
+    .bar-row{margin:16px 0}
+    .bar-title{font-size:20px;font-weight:800;margin-bottom:8px}
+    .bar-track-row{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}
+    .bar-track{height:13px;border-radius:10px;background:#2a3037;overflow:hidden;display:flex}
+    .bar-fill{height:100%;background:var(--accent)}
+    .bar-fill.soft{background:var(--accent-soft)}
+    .bar-value{font-size:18px;font-weight:800;min-width:72px;text-align:right}
+
+    .pill-row{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px}
+    .pill-row::-webkit-scrollbar{display:none}
+    .pill{flex:0 0 auto;border:2px solid #313943;background:transparent;color:#fff;border-radius:999px;padding:12px 17px;font-size:17px;font-weight:800}
+    .pill.active{background:#252c33;border-color:#252c33}
+    .simple-list{margin-top:8px}
+    .simple-row{display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:12px;padding:18px 0}
+    .simple-icon{width:44px;height:44px;border-radius:50%;background:#2b3138;display:grid;place-items:center;font-size:20px}
+    .simple-label{font-size:18px;font-weight:800}
+    .simple-value{font-size:18px;font-weight:800}
+
+    .content-list{padding:6px 0 30px}
+    .content-item{display:grid;grid-template-columns:60px 1fr auto;gap:12px;align-items:start;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.03)}
+    .content-thumb{width:60px;height:84px;border-radius:4px;background:linear-gradient(135deg,#6b506d,#161d25);position:relative;overflow:hidden}
+    .content-thumb:before{content:'▶';position:absolute;right:4px;top:4px;font-size:12px;background:#ffffffdd;color:#111;border-radius:4px;padding:2px 3px}
+    .content-main{min-width:0}
+    .content-title{font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px}
+    .content-meta{font-size:16px;color:#cfd5dd;margin-bottom:6px}
+    .content-stats{display:flex;gap:12px;flex-wrap:wrap;color:#d4dae0;font-size:16px}
+    .content-views{text-align:right;font-weight:900;font-size:18px;line-height:1.1;min-width:70px}
+    .content-views small{display:block;color:#d1d7de;font-size:15px;font-weight:700;margin-top:4px}
+
+    .audience-block{background:var(--panel);border-radius:22px;padding:16px;margin-top:12px}
+    .audience-line{position:relative;height:240px;margin-top:4px}
+    .audience-line .axis-y span:nth-child(1){top:2px}.audience-line .axis-y span:nth-child(2){top:98px}.audience-line .axis-y span:nth-child(3){top:194px}
+    .gender-row{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;margin:18px 0 8px}
+    .gender-row .bar-track{height:14px}
+    .mini-legend{display:flex;gap:20px;align-items:center;color:#d7dce2;font-size:15px;margin:10px 0 8px}
+    .age-row{margin:16px 0}
+    .age-label-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;font-size:18px;font-weight:800}
+    .stack{display:flex;height:14px;border-radius:10px;background:#2a3037;overflow:hidden}
+    .stack .women{background:var(--accent)}
+    .stack .men{background:var(--accent-soft)}
+    .seg-pills{display:flex;gap:10px;margin:8px 0 16px}
+    .seg-pills button{border:2px solid #313943;background:transparent;color:#fff;border-radius:999px;padding:11px 18px;font-size:18px;font-weight:800}
+    .seg-pills button.active{background:#353d47;border-color:#353d47}
+    .lang-row,.loc-row{margin:18px 0}
+    .when-list{margin-top:20px}
+    .when-list h4{font-size:22px;margin:0 0 14px}
+    .when-line{margin:0 0 10px;font-size:18px;font-weight:800;line-height:1.35}
+
+    .hours{margin-top:12px}
+    .day-pills{display:flex;gap:10px;margin-bottom:16px;overflow-x:auto}
+    .day-pills::-webkit-scrollbar{display:none}
+    .day-pill{min-width:50px;border:2px solid #313943;border-radius:999px;padding:10px 0;background:transparent;color:#fff;font-size:18px;font-weight:800;text-align:center}
+    .day-pill.active{background:#353d47;border-color:#353d47}
+    .hour-chart{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;align-items:end;height:220px;padding:8px 0 0}
+    .hour-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+    .hour-bar{width:100%;max-width:62px;background:var(--accent);border-radius:10px 10px 6px 6px;min-height:6px}
+    .hour-label{margin-top:12px;font-size:18px;color:#d2d8de;font-weight:700}
+
+    .edit-fab{position:fixed;right:max(18px,calc((100vw - 600px)/2 + 18px));bottom:24px;width:58px;height:58px;border:0;border-radius:50%;background:#fff;color:#111;font-size:27px;box-shadow:0 8px 30px rgba(0,0,0,.45);z-index:30}
+    .editor{position:fixed;top:0;right:-370px;width:min(370px,92vw);height:100dvh;background:#171c20;color:#fff;z-index:40;padding:18px 16px 22px;box-shadow:-8px 0 28px rgba(0,0,0,.5);transition:.28s;overflow:auto}
+    .editor.open{right:0}
+    .editor-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+    .editor-head strong{font-size:24px}
+    .editor-head button{background:none;border:0;color:#fff;font-size:34px;line-height:1}
+    .editor label{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:12px 0;color:#e7ebf0;font-size:15px}
+    .editor input[type=color]{width:66px;height:36px;border:0;background:none}
+    .editor input[type=text],.editor input[type=number],.editor textarea, .editor select{width:100%;padding:9px 10px;background:#262d33;color:#fff;border:1px solid #3b434b;border-radius:8px}
+    .editor h3{margin:18px 0 8px;font-size:18px}
+    .editor p.hint{color:#adb5bf;font-size:13px;line-height:1.45;margin:0 0 8px}
+    .editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .editor-actions{display:grid;gap:10px;margin-top:18px}
+    .editor-actions button,.import-label{display:flex;justify-content:center;align-items:center;padding:12px;border:0;border-radius:10px;background:#fff;color:#111;font-size:15px;font-weight:800}
+    .editor-actions .secondary{background:#262d33;color:#fff;border:1px solid #3b434b}
+    .editor-actions .danger{background:#852f37;color:#fff}
+    .import-label input{display:none}
+    [contenteditable="true"]{outline:2px dashed rgba(240,43,215,.7);outline-offset:3px;border-radius:4px}
+    .toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,110px);background:#fff;color:#111;padding:12px 18px;border-radius:999px;font-weight:700;transition:.25s;z-index:60}
+    .toast.show{transform:translate(-50%,0)}
+    .recording-mode .edit-fab,.recording-mode .editor{display:none !important}
+    .app [contenteditable="true"]{outline:none;cursor:text}
+    .app [contenteditable="true"]:focus{outline:2px dashed var(--accent);outline-offset:2px}
+    .recording-mode .app [contenteditable]{pointer-events:none}
+    .recording-exit{display:none;position:fixed;top:8px;right:8px;width:16px;height:16px;border:0;border-radius:50%;background:transparent;opacity:.05;z-index:70}
+    .recording-mode .recording-exit{display:block}
+
+    @media (max-width:520px){
+      .app{width:100%}
+      .top-status{padding:14px 16px 4px;font-size:18px}
+      .header{padding:2px 16px 8px;grid-template-columns:30px 1fr 66px}
+      .back{font-size:36px}
+      .header-title{font-size:18px}
+      .header-actions{font-size:22px;gap:12px}
+      .main-tab{font-size:14px;padding-bottom:10px}
+      .section{padding:18px 14px 0}
+      .section-title{font-size:18px}
+      .period{font-size:14px}
+      .home-summary-grid{gap:12px}
+      .card{border-radius:16px;padding:14px}
+      .summary-large{min-height:200px}
+      .card-kicker{font-size:13px;margin-bottom:8px}
+      .card-value{font-size:20px}
+      .card-change{font-size:13px}
+      .spark-dates{font-size:10px}
+      .tools-box,.big-block,.chart-card,.audience-block{border-radius:18px}
+      .block-head{padding:16px 14px 8px}
+      .tools-grid{gap:12px;padding:8px 14px 4px}
+      .tool-card{min-height:95px;padding:12px}
+      .tool-name{font-size:12px}
+      .tool-icon{font-size:20px}
+      .next-list{padding:0 14px 2px}
+      .next-item{grid-template-columns:50px 1fr 18px;gap:10px;padding:10px 0}
+      .thumb{width:50px;height:50px;border-radius:8px}
+      .next-title{font-size:14px}.next-desc{font-size:12px}.arrow{font-size:22px}
+      .metric-card{min-width:122px;padding:14px 12px}.metric-label{font-size:12px}.metric-value{font-size:18px}.metric-change{font-size:12px}
+      .line-chart{height:190px}.g1{top:6px}.g2{top:77px}.g3{top:148px}.axis-y{width:36px;font-size:12px}.axis-y span:nth-child(2){top:69px}.axis-y span:nth-child(3){top:140px}.plot{left:40px;bottom:22px}.plot svg{height:155px}.plot polyline{stroke-width:5}.plot-dates{left:40px;font-size:12px}
+      .subsection{padding:0 14px}.subsection h3{font-size:18px;margin:18px 0 10px}.legend,.mini-legend{font-size:12px;gap:12px}.bar-row,.age-row,.lang-row,.loc-row{margin:12px 0}.bar-title,.simple-label,.gender-row,.age-label-row{font-size:15px}.bar-track{height:10px}.bar-value,.simple-value{font-size:15px;min-width:52px}.pill{padding:10px 14px;font-size:14px}.simple-row{padding:14px 0}.simple-icon{width:36px;height:36px;font-size:16px}.content-item{grid-template-columns:46px 1fr auto;gap:10px;padding:10px 0}.content-thumb{width:46px;height:66px}.content-title,.content-meta,.content-stats{font-size:12px}.content-views{font-size:14px;min-width:54px}.content-views small{font-size:11px}.seg-pills button{padding:9px 14px;font-size:14px}.hour-chart{height:160px;gap:6px}.hour-label{font-size:12px;margin-top:8px}.day-pill{min-width:40px;padding:8px 0;font-size:14px}.when-list h4{font-size:18px}.when-line{font-size:14px}.edit-fab{right:14px;bottom:18px;width:48px;height:48px;font-size:22px}.editor{width:min(340px,94vw)}
+    }
+
+    /* Light version: original screenshot layout, bright editable dashboard */
+    :root{--bg:#fff;--panel:#fff;--card:#f2f3f5;--line:#e7e9ee;--track:#e5e8ed;--text:#17191d;--muted:#686f7a;--muted2:#858c95;--accent:#e52bc5;--accent-soft:#f1a0e5}
+    html,body,.app{background:#fff;color:#17191d}
+    .header{padding-top:20px;padding-bottom:17px}
+    .header-title,.back,.header-actions,.main-tab.active,.section-title,.card-value,.metric-value,.bar-title,.bar-value,.simple-label,.simple-value,.content-views,.age-label-row,.when-line,.when-list h4{color:#17191d}
+    .main-tab{color:#888e98}.main-tab.active:after{background:#17191d}
+    .main-tabs{border-bottom:1px solid #e7e9ee}
+    .card,.metric-card,.tool-card{background:#f1f3f5;box-shadow:none}
+    .tools-box,.big-block,.chart-card,.audience-block{background:#fff}
+    .card-kicker,.metric-label,.period,.period small,.next-desc,.content-meta,.content-stats,.content-views small,.legend,.mini-legend,.spark-dates,.plot-dates,.hour-label,.active-times-sub,.chev,.arrow{color:#737b86}
+    .card-change.negative,.metric-change.negative{color:#7d8690}
+    .line-grid{border-color:#e5e8ed}
+    .axis-y,.bar-value{color:#252932}
+    .bar-track,.stack{background:#e6e8ee}
+    .pill,.seg-pills button,.day-pill{color:#30333b;border-color:#e0e3e9;background:#fff}
+    .pill.active,.seg-pills button.active,.day-pill.active{background:#e9ebef;border-color:#e9ebef}
+    .simple-icon{background:#e9ebef;color:#17191d}
+    .tool-icon{color:#293039}
+    .metric-card.active{border-color:#30333b}
+    .content-item{border-color:#eef0f3}
+    .editor{background:#fff;color:#17191d;box-shadow:-9px 0 30px rgba(0,0,0,.16)}
+    .editor-head button{color:#17191d}
+    .editor label{color:#333842}
+    .editor input[type=text],.editor input[type=number],.editor textarea,.editor select{background:#f4f5f7;color:#17191d;border:1px solid #dfe2e8}
+    .editor p.hint{color:#6e7580}
+    .editor-actions button,.import-label{background:#17191d;color:#fff}
+    .editor-actions .secondary{background:#eceef2;color:#17191d;border:1px solid #dfe2e8}
+    .sidebar-group{border:1px solid #e6e8eb;border-radius:12px;margin:13px 0;overflow:hidden;background:#fff}
+    .sidebar-group summary{padding:13px;background:#f4f5f7;font-weight:800;font-size:14px;cursor:pointer}
+    .sidebar-fields{padding:12px;display:grid;gap:10px}
+    .sidebar-field{display:grid;gap:5px;min-width:0}
+    .sidebar-field>span{font-size:12px;color:#616974;word-break:break-word}
+    .sidebar-field input,.sidebar-field textarea{font-size:14px;width:100%;min-width:0}
+    .sidebar-field textarea{min-height:48px;resize:vertical}
+    .sidebar-section-label{font-size:13px;font-weight:800;margin:10px 0 0;color:#1b1d23}
+    .sidebar-array-item{padding:9px 7px;border:1px solid #e9ebee;border-radius:10px;display:grid;gap:8px}
+    .sidebar-array-item strong{font-size:12px;color:#606773}
+    .sidebar-array-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .sidebar-array-grid>.sidebar-field:first-child{grid-column:1/-1}
+    .sidebar-action{border:1px solid #dce0e7;background:#f5f6f8;color:#24272e;border-radius:8px;padding:8px;font-weight:700;cursor:pointer}
+    .editor h3{border-top:1px solid #e6e9ef;padding-top:12px}
+    .toast{background:#20242b;color:#fff}
+    @media(max-width:520px){.header{padding-top:14px;padding-bottom:12px}}
+  
+    /* Precise top-right share and info icons, matching the supplied reference */
+    .header-actions{display:flex;justify-content:flex-end;align-items:center;gap:24px;font-size:inherit;color:#17191d}
+    .header-actions>span{display:inline-flex;align-items:center;justify-content:center;width:32px;height:34px}
+    .header-actions svg{width:32px;height:32px;fill:none;stroke:currentColor;stroke-width:2.7;stroke-linejoin:round;stroke-linecap:round}
+    .header{grid-template-columns:36px 1fr 92px}
+    @media(max-width:520px){.header{grid-template-columns:30px 1fr 86px}.header-actions{gap:18px}.header-actions>span{width:30px;height:32px}.header-actions svg{width:30px;height:30px}}
+  </style>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="header">
+    <div class="back">‹</div>
+    <div class="header-title" id="dashboardTitle" data-free-text="dashboardTitle">Your dashboard</div>
+    <div class="header-actions" aria-label="Dashboard actions">
+      <span aria-label="Share" title="Share"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 20V3m0 0-7 7m7-7 7 7"/><path d="M8 14H5v12c0 1.7 1.3 3 3 3h16c1.7 0 3-1.3 3-3V14h-3"/></svg></span>
+      <span aria-label="Information" title="Information"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13"/><path d="M16 14v9"/><circle cx="16" cy="9" r="1" fill="currentColor" stroke="none"/></svg></span>
+    </div>
+  </header>
+
+  <nav class="main-tabs">
+    <button class="main-tab active" data-panel="home" id="tabHome">Home</button>
+    <button class="main-tab" data-panel="performance" id="tabPerformance">Performanc<br>e</button>
+    <button class="main-tab" data-panel="content" id="tabContent">Content</button>
+    <button class="main-tab" data-panel="audience" id="tabAudience">Audience</button>
+  </nav>
+
+  <main>
+    <section class="panel active" id="homePanel">
+      <div class="section">
+        <div class="section-head">
+          <div class="section-title" id="homeSummaryTitle" data-free-text="homeSummaryTitle">Summary</div>
+          <div class="period" id="homePeriod" data-free-text="homePeriod">30 days <small>⌄</small></div>
+        </div>
+        <div class="home-summary-grid">
+          <div class="card summary-large">
+            <div class="card-kicker" id="homeCardViewsLabel" data-free-text="homeCardViewsLabel">Views</div>
+            <div class="card-value" data-key="homeViews">6,096,030</div>
+            <div class="card-change" data-key="homeViewsChange">+19.5% vs. Oct 15</div>
+            <div class="spark-wrap">
+              <svg viewBox="0 0 280 120" width="100%" height="92" preserveAspectRatio="none">
+                <polyline id="homeSparkLine" fill="none" stroke="var(--accent)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></polyline>
+              </svg>
+              <div class="spark-dates"><span id="homeSparkStart" data-free-text="homeSparkStart">16 Oct</span><span id="homeSparkEnd" data-free-text="homeSparkEnd">14 Nov</span></div>
+            </div>
+          </div>
+          <div class="summary-stack">
+            <div class="card">
+              <div class="card-kicker" id="homeFollowersLabel" data-free-text="homeFollowersLabel">Followers</div>
+              <div class="card-value" data-key="homeFollowers">179,602</div>
+              <div class="card-change negative" data-key="homeFollowersChange">-1.3% vs. Oct 15</div>
+            </div>
+            <div class="card">
+              <div class="card-kicker" id="homeNetFollowersLabel" data-free-text="homeNetFollowersLabel">Net followers</div>
+              <div class="card-value" data-key="homeNetFollowers">-2,376</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tools-box">
+        <div class="block-head">
+          <div class="section-title" id="toolsTitle" data-free-text="toolsTitle">Tools</div>
+          <div class="chev">›</div>
+        </div>
+        <div class="tools-grid" id="toolsGrid"></div>
+      </div>
+
+      <div class="big-block">
+        <div class="block-head">
+          <div class="section-title" id="nextStepsTitle" data-free-text="nextStepsTitle">Next steps</div>
+        </div>
+        <div class="next-list" id="nextStepsList"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="performancePanel">
+      <div class="section">
+        <div class="section-head">
+          <div class="section-title" id="perfAllContent" data-free-text="perfAllContent">All content</div>
+          <div class="period" id="perfPeriod" data-free-text="perfPeriod">30 days <small>⌄</small></div>
+        </div>
+        <div class="scroll-cards" id="perfMetricCards"></div>
+      </div>
+      <div class="chart-card">
+        <div class="line-chart">
+          <i class="line-grid g1"></i><i class="line-grid g2"></i><i class="line-grid g3"></i>
+          <div class="axis-y"><span id="perfAxisTop" data-free-text="perfAxisTop">3,3M</span><span id="perfAxisMid" data-free-text="perfAxisMid">1,6M</span><span id="perfAxisLow" data-free-text="perfAxisLow">0</span></div>
+          <div class="plot">
+            <svg viewBox="0 0 540 220" preserveAspectRatio="none"><polyline id="perfChartLine"></polyline></svg>
+          </div>
+          <div class="plot-dates"><span id="perfDate1" data-free-text="perfDate1">Oct 16</span><span id="perfDate2" data-free-text="perfDate2">Oct 30</span><span id="perfDate3" data-free-text="perfDate3">Nov 14</span></div>
+        </div>
+      </div>
+      <div class="subsection">
+        <h3 id="viewsByTypeTitle" data-free-text="viewsByTypeTitle">Views by content type ⓘ</h3>
+        <div class="legend"><span><i class="dot followers"></i><span id="legendFollowers" data-free-text="legendFollowers">Followers</span></span><span><i class="dot nonfollowers"></i><span id="legendNonFollowers" data-free-text="legendNonFollowers">Non-followers</span></span></div>
+        <div id="viewsByTypeBars"></div>
+
+        <h3 id="interactionsTitle" data-free-text="interactionsTitle">Interactions by content type ⓘ</h3>
+        <div class="pill-row" id="interactionPills"></div>
+        <div class="legend"><span><i class="dot followers"></i><span data-free-text="legendFollowers2" id="legendFollowers2">Followers</span></span><span><i class="dot nonfollowers"></i><span data-free-text="legendNonFollowers2" id="legendNonFollowers2">Non-followers</span></span></div>
+        <div id="interactionBars"></div>
+
+        <h3 id="profileActivityTitle" data-free-text="profileActivityTitle">Profile activity ⓘ</h3>
+        <div class="simple-list" id="profileActivityList"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="contentPanel">
+      <div class="section">
+        <div class="section-head">
+          <div class="section-title" id="contentAllTitle" data-free-text="contentAllTitle">All content</div>
+          <div class="period" id="contentPeriod" data-free-text="contentPeriod">30 days <small>⌄</small></div>
+        </div>
+        <div class="pill-row" id="contentFilters"></div>
+        <div class="content-list" id="contentList"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="audiencePanel">
+      <div class="section">
+        <div class="section-head">
+          <div class="section-title" id="audienceAllContent" data-free-text="audienceAllContent">All content</div>
+          <div class="period" id="audiencePeriod" data-free-text="audiencePeriod">30 days <small>⌄</small></div>
+        </div>
+        <div class="scroll-cards" id="audienceMetricCards"></div>
+      </div>
+      <div class="audience-block">
+        <div class="audience-line">
+          <i class="line-grid g1"></i><i class="line-grid g2"></i><i class="line-grid g3"></i>
+          <div class="axis-y"><span id="audAxisTop" data-free-text="audAxisTop">181K</span><span id="audAxisMid" data-free-text="audAxisMid">180K</span><span id="audAxisLow" data-free-text="audAxisLow">179K</span></div>
+          <div class="plot">
+            <svg viewBox="0 0 540 220" preserveAspectRatio="none"><polyline id="audienceChartLine"></polyline></svg>
+          </div>
+          <div class="plot-dates"><span id="audDate1" data-free-text="audDate1">Oct 16</span><span id="audDate2" data-free-text="audDate2">Oct 30</span><span id="audDate3" data-free-text="audDate3">Nov 14</span></div>
+        </div>
+      </div>
+      <div class="subsection">
+        <h3 id="genderTitle" data-free-text="genderTitle">Gender ⓘ</h3>
+        <div id="genderRows"></div>
+
+        <h3 id="ageTitle" data-free-text="ageTitle">Age range ⓘ</h3>
+        <div class="mini-legend"><span><i class="dot followers"></i><span id="womenLegend" data-free-text="womenLegend">Women</span></span><span><i class="dot nonfollowers"></i><span id="menLegend" data-free-text="menLegend">Men</span></span></div>
+        <div id="ageRows"></div>
+
+        <h3 id="topLocationsTitle" data-free-text="topLocationsTitle">Top locations ⓘ</h3>
+        <div class="seg-pills"><button class="active" id="countriesPill">Countries</button><button id="citiesPill">Cities</button></div>
+        <div id="topLocationsRows"></div>
+
+        <h3 id="topLanguagesTitle" data-free-text="topLanguagesTitle">Top languages ⓘ</h3>
+        <div id="topLanguagesRows"></div>
+
+        <h3 id="activeTimesTitle" data-free-text="activeTimesTitle">Follower active times ⓘ</h3>
+        <div id="activeTimesSub" data-free-text="activeTimesSub" style="color:var(--muted);font-size:17px;margin-top:-4px">Based on your current time zone (GMT)</div>
+        <div class="hours">
+          <div class="day-pills" id="dayPills"></div>
+          <div class="hour-chart" id="hourChart"></div>
+          <div class="when-list">
+            <h4 id="whenTitle" data-free-text="whenTitle">When followers are most active</h4>
+            <div id="whenLines"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <button class="edit-fab" id="editBtn" aria-label="Edit">✎</button>
+  <aside class="editor" id="editor">
+    <div class="editor-head"><strong>Edit dashboard</strong><button id="closeEditor">×</button></div>
+    <label>Background <input type="color" id="bgColor" value="#ffffff"></label>
+    <label>Panel / cards <input type="color" id="cardColor" value="#f2f3f5"></label>
+    <label>Accent <input type="color" id="accentColor" value="#f02bd7"></label>
+    <label>Accent soft <input type="color" id="accentSoftColor" value="#ef95ea"></label>
+    <p class="hint">Ga3 modifications kaynin hna. Bdel chi valeur, w ghatban direct f dashboard. 100% kat3mer lbarre kamla.</p>
+    <div id="sidebarFields"></div>
+
+    <h3>Home sparkline points</h3>
+    <div class="editor-grid" id="homeSparkInputs"></div>
+
+    <h3>Performance chart points</h3>
+    <div class="editor-grid" id="perfChartInputs"></div>
+
+    <h3>Audience chart points</h3>
+    <div class="editor-grid" id="audChartInputs"></div>
+
+    <h3>Active times bars</h3>
+    <div class="editor-grid" id="activeTimeInputs"></div>
+
+    <div class="editor-actions">
+      <button class="secondary" id="recordingModeBtn" type="button">Recording mode</button>
+      <button id="saveBtn" type="button">Save</button>
+      <button id="exportBtn" type="button">Export</button>
+      <label class="import-label">Import<input type="file" id="importInput" accept="application/json"></label>
+      <button class="danger" id="resetBtn" type="button">Reset</button>
+    </div>
+  </aside>
+  <button class="recording-exit" id="recordingExit" aria-label="Exit recording mode"></button>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+const $ = sel => document.querySelector(sel);
+const $$ = sel => document.querySelectorAll(sel);
+
+const defaultState = {
+  values: {
+    homeViews: '6,096,030',
+    homeViewsChange: '+19.5% vs. Oct 15',
+    homeFollowers: '179,602',
+    homeFollowersChange: '-1.3% vs. Oct 15',
+    homeNetFollowers: '-2,376'
+  },
+  freeText: {},
+  tools: [
+    { name: 'Account\nStatus', icon: '⚠', danger: true },
+    { name: 'Ad tools', icon: '↗', danger: false },
+    { name: 'Monetization', icon: '⌘', danger: false },
+    { name: 'Monthly\nrecap', icon: '◷', danger: false },
+    { name: 'Scheduled\ncontent', icon: '⌚', danger: false },
+    { name: 'Trending\naudio', icon: '↗', danger: false }
+  ],
+  nextSteps: [
+    { title: 'Connect with messaging ads', desc: 'Create meaningful connections that can lead to sales.' },
+    { title: 'Connect with messaging ads', desc: 'Create meaningful connections that can lead to sales.' }
+  ],
+  filters: ['Latest','Views','Viewers','Follows','Likes'],
+  interactionPills: ['All','♡ Likes','◌ Comments','⟳ Reposts','↗ Shares'],
+  perfMetricCards: [
+    { label: 'Views', value: '6,096,030', change: '+19.5% vs. Oct 15', active: true },
+    { label: 'Viewers', value: '423,243', change: '+18.9% vs. Oct 15', active: false },
+    { label: 'Follower views', value: '353,574', change: '+86.6% vs. Oct 15', active: false },
+    { label: 'Non-follower views', value: '3,506,889', change: '-4.0% vs. Oct 15', active: false }
+  ],
+  perfChart: [14,34,6,5,4,100,3,2,2,2,2],
+  homeSpark: [14,36,7,6,4,100,3,2,2,2,2],
+  audienceMetricCards: [
+    { label: 'Followers', value: '179,602', change: '-1.3% vs. Oct 15', active: true },
+    { label: 'Net followers', value: '-2,376', change: '', active: false },
+    { label: 'Follows', value: '+576', change: '', active: false },
+    { label: 'Unfollows', value: '-2,952', change: '', active: false }
+  ],
+  audienceChart: [96,94,90,86,83,81,78,72,68,62,58,54,49,45,41,38,33],
+  viewsByType: [
+    { name: 'Reels', total: '3,6M', share: 92, split: 8 },
+    { name: 'Posts', total: '206K', share: 18, split: 10 },
+    { name: 'Stories', total: '9,4K', share: 2, split: 8 },
+    { name: 'Live videos', total: '0', share: 0, split: 0 }
+  ],
+  interactionBars: [
+    { name: 'Reels', total: '55K', share: 86, split: 10 },
+    { name: 'Posts', total: '7,6K', share: 19, split: 14 },
+    { name: 'Stories', total: '602', share: 2, split: 8 },
+    { name: 'Live videos', total: '0', share: 0, split: 0 }
+  ],
+  profileActivity: [
+    { icon: '◉', label: 'Profile visits', value: '1,8K' },
+    { icon: '↗', label: 'Bio link taps', value: '4' },
+    { icon: '⌂', label: 'Business address taps', value: '0' }
+  ],
+  contentItems: [
+    { title: '', time: '20h', likes: '338', comments: '9', reposts: '30', shares: '340', views: '6,2K' },
+    { title: '', time: '1d', likes: '72', comments: '0', reposts: '1', shares: '0', views: '565' },
+    { title: '', time: '2d', likes: '40', comments: '0', reposts: '0', shares: '0', views: '326' },
+    { title: '', time: '3d', likes: '22', comments: '1', reposts: '1', shares: '10', views: '1,4K' },
+    { title: '@jawadelkhaoudiofficiel', time: '3d', likes: '10', comments: '0', reposts: '0', shares: '0', views: '106' },
+    { title: '...sntalich 3tani wahed l i7sas', time: '3d', likes: '7', comments: '0', reposts: '0', shares: '0', views: '880' },
+    { title: '', time: '4d', likes: '13', comments: '0', reposts: '0', shares: '0', views: '114' },
+    { title: 'kifach ناس تفاعلو مع الف...', time: '4d', likes: '5', comments: '0', reposts: '0', shares: '3', views: '1,7K' },
+    { title: '', time: '5d', likes: '10', comments: '0', reposts: '0', shares: '0', views: '156' }
+  ],
+  gender: [
+    { name: 'Women', value: 30.3 },
+    { name: 'Men', value: 69.7 }
+  ],
+  ageRanges: [
+    { name: '13-17', value: 16.5, womenShare: 30 },
+    { name: '18-24', value: 43.8, womenShare: 28 },
+    { name: '25-34', value: 27.2, womenShare: 30 },
+    { name: '35-44', value: 7.6, womenShare: 34 },
+    { name: '45-54', value: 2.9, womenShare: 32 },
+    { name: '55-64', value: 1.0, womenShare: 35 },
+    { name: '65+', value: 1.0, womenShare: 35 }
+  ],
+  topLocations: [
+    { name: 'Morocco', value: 83.1 },
+    { name: 'Algeria', value: 6.4 },
+    { name: 'Spain', value: 1.7 },
+    { name: 'Italy', value: 1.2 },
+    { name: 'France', value: 1.0 }
+  ],
+  cities: [
+    { name: 'Casablanca', value: 28.0 },
+    { name: 'Rabat', value: 16.5 },
+    { name: 'Oujda', value: 8.2 },
+    { name: 'Marrakech', value: 6.1 },
+    { name: 'Fes', value: 5.0 }
+  ],
+  locationMode: 'countries',
+  topLanguages: [
+    { name: 'Arabic', value: 72.0 },
+    { name: 'French', value: 19.5 },
+    { name: 'English', value: 4.3 },
+    { name: 'Spanish', value: 1.7 },
+    { name: 'Italian', value: 1.0 }
+  ],
+  activeDays: ['Su','M','Tu','W','Th','F','Sa'],
+  activeDayIndex: 0,
+  activeTimes: [
+    { label: '12a', value: 48 },
+    { label: '3a', value: 14 },
+    { label: '6a', value: 14 },
+    { label: '9a', value: 40 },
+    { label: '12p', value: 72 },
+    { label: '3p', value: 79 },
+    { label: '6p', value: 86 },
+    { label: '9p', value: 86 }
+  ],
+  whenMostActive: [
+    'Sundays', '18 - 00',
+    'Mondays', '18 - 21'
+  ],
+  colors: {
+    bg: '#ffffff',
+    card: '#f2f3f5',
+    accent: '#f02bd7',
+    accentSoft: '#ef95ea'
+  }
+};
+
+let state = JSON.parse(JSON.stringify(defaultState));
+let editing = false;
+
+const freeTextIds = [
+  'statusTime','batteryPct','dashboardTitle','homeSummaryTitle','homePeriod','homeCardViewsLabel','homeFollowersLabel','homeNetFollowersLabel','homeSparkStart','homeSparkEnd',
+  'toolsTitle','nextStepsTitle','perfAllContent','perfPeriod','perfAxisTop','perfAxisMid','perfAxisLow','perfDate1','perfDate2','perfDate3','viewsByTypeTitle','legendFollowers','legendNonFollowers',
+  'interactionsTitle','legendFollowers2','legendNonFollowers2','profileActivityTitle','contentAllTitle','contentPeriod','audienceAllContent','audiencePeriod','audAxisTop','audAxisMid','audAxisLow',
+  'audDate1','audDate2','audDate3','genderTitle','ageTitle','womenLegend','menLegend','topLocationsTitle','topLanguagesTitle','activeTimesTitle','activeTimesSub','whenTitle'
+];
+
+function toast(message){
+  const t = $('#toast');
+  t.textContent = message;
+  t.classList.add('show');
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(()=>t.classList.remove('show'),1800);
+}
+
+function clamp(v,min=0,max=100){
+  v = Number(v);
+  return Number.isFinite(v) ? Math.max(min, Math.min(max, v)) : 0;
+}
+function formatPct(v){
+  return Number(v).toLocaleString('fr-FR',{minimumFractionDigits:1,maximumFractionDigits:1}) + '%';
+}
+function parsePct(text){
+  const n = parseFloat(String(text).replace('%','').replace(',','.').trim());
+  return Number.isFinite(n) ? clamp(n) : 0;
+}
+function parseHumanCount(text){
+  const s = String(text).trim().toUpperCase().replace(/\s/g,'').replace(',', '.');
+  if(!s) return 0;
+  if(s.endsWith('M')) return parseFloat(s)*1000000 || 0;
+  if(s.endsWith('K')) return parseFloat(s)*1000 || 0;
+  return parseFloat(s.replace(/[^0-9.-]/g,'')) || 0;
+}
+
+function syncValue(key, value, source){
+  state.values[key] = value;
+  $$(`[data-key="${key}"]`).forEach(el=>{ if(el!==source) el.textContent = value; });
+}
+
+function applyTheme(){
+  document.documentElement.style.setProperty('--bg', state.colors.bg);
+  document.documentElement.style.setProperty('--panel', shadeColor(state.colors.bg, 7));
+  document.documentElement.style.setProperty('--card', state.colors.card);
+  document.documentElement.style.setProperty('--accent', state.colors.accent);
+  document.documentElement.style.setProperty('--accent-soft', state.colors.accentSoft);
+  $('#bgColor').value = state.colors.bg;
+  $('#cardColor').value = state.colors.card;
+  $('#accentColor').value = state.colors.accent;
+  $('#accentSoftColor').value = state.colors.accentSoft;
+}
+function shadeColor(hex, amount){
+  const c = hex.replace('#','');
+  const n = parseInt(c,16);
+  let r = (n>>16) + amount;
+  let g = ((n>>8)&255) + amount;
+  let b = (n&255) + amount;
+  r=Math.max(0,Math.min(255,r)); g=Math.max(0,Math.min(255,g)); b=Math.max(0,Math.min(255,b));
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+function drawPolyline(points, selector, width=540, height=220, invert=true){
+  const el = $(selector);
+  if(!el || points.length<2) return;
+  const poly = points.map((v,i)=>{
+    const x = i*(width/(points.length-1));
+    const y = invert ? (height - clamp(v)*height/100) : clamp(v)*height/100;
+    return `${x},${y}`;
+  }).join(' ');
+  el.setAttribute('points', poly);
+}
+
+function renderTools(){
+  $('#toolsGrid').innerHTML = state.tools.map((tool,idx)=>`
+    <div class="tool-card" data-tool-index="${idx}">
+      <div class="tool-name" contenteditable="${!document.body.classList.contains('recording-mode')}" data-tool-field="name">${tool.name.replace(/\n/g,'<br>')}</div>
+      <div class="tool-icon ${tool.danger?'danger':''}">${tool.icon}</div>
+    </div>
+  `).join('');
+  $$('#toolsGrid [data-tool-field="name"]').forEach(el=>{
+    el.oninput = ()=>{ state.tools[Number(el.closest('[data-tool-index]').dataset.toolIndex)].name = el.innerText.trim(); };
+    el.onkeydown = e=>{ if(e.key==='Enter'){ e.preventDefault(); el.blur(); } };
+  });
+}
+
+function renderNextSteps(){
+  $('#nextStepsList').innerHTML = state.nextSteps.map((item,idx)=>`
+    <div class="next-item" data-next-index="${idx}">
+      <div class="thumb"></div>
+      <div>
+        <div class="next-title" contenteditable="${!document.body.classList.contains('recording-mode')}" data-next-field="title">${item.title}</div>
+        <div class="next-desc" contenteditable="${!document.body.classList.contains('recording-mode')}" data-next-field="desc">${item.desc}</div>
+      </div>
+      <div class="arrow">›</div>
+    </div>
+  `).join('');
+  $$('#nextStepsList [data-next-field]').forEach(el=>{
+    el.oninput = ()=>{ const idx = Number(el.closest('[data-next-index]').dataset.nextIndex); state.nextSteps[idx][el.dataset.nextField] = el.textContent.trim(); };
+    el.onkeydown = e=>{ if(e.key==='Enter'){ e.preventDefault(); el.blur(); } };
+  });
+}
+
+function renderMetricCards(){
+  $('#perfMetricCards').innerHTML = state.perfMetricCards.map((item,idx)=>`
+    <div class="metric-card ${item.active?'active':''}" data-perf-card="${idx}">
+      <div class="metric-label" contenteditable="${!document.body.classList.contains('recording-mode')}" data-field="label">${item.label}</div>
+      <div class="metric-value" contenteditable="${!document.body.classList.contains('recording-mode')}" data-field="value">${item.value}</div>
+      <div class="metric-change ${String(item.change).trim().startsWith('-')?'negative':''}" contenteditable="${!document.body.classList.contains('recording-mode')}" data-field="change">${item.change||''}</div>
+    </div>
+  `).join('');
+  $('#audienceMetricCards').innerHTML = state.audienceMetricCards.map((item,idx)=>`
+    <div class="metric-card ${item.active?'active':''}" data-aud-card="${idx}">
+      <div class="metric-label" contenteditable="${!document.body.classList.contains('recording-mode')}" data-field="label">${item.label}</div>
+      <div class="metric-value" contenteditable="${!document.body.classList.contains('recording-mode')}" data-field="value">${item.value}</div>
+      <div class="metric-change ${String(item.change).trim().startsWith('-')?'negative':''}" contenteditable="${!document.body.classList.contains('recording-mode')}" data-field="change">${item.change||''}</div>
+    </div>
+  `).join('');
+  bindObjectEditors('#perfMetricCards [data-field]','perfMetricCards','perf-card');
+  bindObjectEditors('#audienceMetricCards [data-field]','audienceMetricCards','aud-card');
+}
+
+function bindObjectEditors(selector, stateKey, parentDataAttr){
+  $$(selector).forEach(el=>{
+    el.oninput = ()=>{
+      const idx = Number(el.closest(`[data-${parentDataAttr}]`).dataset[parentDataAttr.replace(/-([a-z])/g,(m,p)=>p.toUpperCase())]);
+      state[stateKey][idx][el.dataset.field] = el.textContent.trim();
+    };
+    el.onkeydown = e=>{ if(e.key==='Enter'){ e.preventDefault(); el.blur(); } };
+  });
+}
+
+function renderBars(containerSelector, items, kind){
+  const container = $(containerSelector);
+  const maxShare = Math.max(...items.map(it=>it.share||it.value||0), 1);
+  container.innerHTML = items.map((item,idx)=>{
+    const total = item.total !== undefined ? item.total : formatPct(item.value);
+    const width = ((item.share !== undefined ? item.share : item.value) / maxShare) * 100;
+    const split = clamp(item.split||0);
+    const lead = width * (split/100);
+    const rest = Math.max(0,width-lead);
+    return `
+      <div class="bar-row" data-kind="${kind}" data-index="${idx}">
+        <div class="bar-title" contenteditable="${!document.body.classList.contains('recording-mode')}" data-field="name">${item.name}</div>
+        <div class="bar-track-row">
+          <div class="bar-track">
+            <div class="bar-fill" style="width:${lead}%"></div>
+            <div class="bar-fill soft" style="width:${rest}%"></div>
+          </div>
+          <div class="bar-value" contenteditable="${!document.body.classList.contains('recording-mode')}" data-field="display">${total}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  $(`${containerSelector}`).querySelectorAll('[data-field]').forEach(el=>{
+    el.oninput = ()=>{
+      const wrap = el.closest('.bar-row');
+      const idx = Number(wrap.dataset.index);
+      const field = el.dataset.field;
+      const arr = state[kind];
+      if(field==='name'){
+        arr[idx].name = el.textContent.trim();
+      } else {
+        const txt = el.textContent.trim();
+        if(arr[idx].total !== undefined){
+          arr[idx].total = txt;
+          arr[idx].share = parseHumanCount(txt);
+        } else {
+          arr[idx].value = parsePct(txt);
+          el.textContent = formatPct(arr[idx].value);
+        }
+        const fill = wrap.querySelector('.bar-fill');
+        if(fill && arr[idx].value !== undefined) fill.style.width = arr[idx].value + '%';
+      }
+    };
+    el.onkeydown = e=>{ if(e.key==='Enter'){ e.preventDefault(); el.blur(); } };
+    el.onblur = ()=>{
+      const wrap = el.closest('.bar-row');
+      const idx = Number(wrap.dataset.index);
+      const arr = state[kind];
+      if(el.dataset.field==='display'){
+        if(arr[idx].value !== undefined) el.textContent = formatPct(arr[idx].value);
+        renderAllBarsOnly();
+      }
+    };
+  });
+}
+
+function renderAllBarsOnly(){
+  renderBars('#viewsByTypeBars', state.viewsByType, 'viewsByType');
+  renderBars('#interactionBars', state.interactionBars, 'interactionBars');
+  renderGenderRows();
+  renderAgeRows();
+  renderSimplePercentBars('#topLocationsRows', state.locationMode === 'cities' ? state.cities : state.topLocations, state.locationMode === 'cities' ? 'cities' : 'topLocations');
+  renderSimplePercentBars('#topLanguagesRows', state.topLanguages, 'topLanguages');
+}
+
+function renderProfileActivity(){
+  $('#profileActivityList').innerHTML = state.profileActivity.map((item,idx)=>`
+    <div class="simple-row" data-profile-index="${idx}">
+      <div class="simple-icon">${item.icon}</div>
+      <div class="simple-label" contenteditable="${!document.body.classList.contains('recording-mode')}" data-field="label">${item.label}</div>
+      <div class="simple-value" contenteditable="${!document.body.classList.contains('recording-mode')}" data-field="value">${item.value}</div>
+    </div>
+  `).join('');
+  $$('#profileActivityList [data-field]').forEach(el=>{
+    el.oninput = ()=>{ const idx = Number(el.closest('[data-profile-index]').dataset.profileIndex); state.profileActivity[idx][el.dataset.field] = el.textContent.trim(); };
+    el.onkeydown = e=>{ if(e.key==='Enter'){ e.preventDefault(); el.blur(); } };
+  });
+}
+
+function renderContentFilters(){
+  $('#contentFilters').innerHTML = state.filters.map((txt,idx)=>`<button class="pill ${idx===0?'active':''}" contenteditable="${!document.body.classList.contains('recording-mode')}" data-filter-index="${idx}">${txt}</button>`).join('');
+  $$('#contentFilters .pill').forEach(btn=>{
+    btn.onclick = ()=>{ if(editing) return; $$('#contentFilters .pill').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); };
+    btn.oninput = ()=>{ state.filters[Number(btn.dataset.filterIndex)] = btn.textContent.trim(); };
+    btn.onkeydown = e=>{ if(e.key==='Enter'){ e.preventDefault(); btn.blur(); } };
+  });
+  $('#interactionPills').innerHTML = state.interactionPills.map((txt,idx)=>`<button class="pill ${idx===0?'active':''}" contenteditable="${!document.body.classList.contains('recording-mode')}" data-intpill-index="${idx}">${txt}</button>`).join('');
+  $$('#interactionPills .pill').forEach(btn=>{
+    btn.onclick = ()=>{ if(editing) return; $$('#interactionPills .pill').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); };
+    btn.oninput = ()=>{ state.interactionPills[Number(btn.dataset.intpillIndex)] = btn.textContent.trim(); };
+    btn.onkeydown = e=>{ if(e.key==='Enter'){ e.preventDefault(); btn.blur(); } };
+  });
+}
+
+function renderContentList(){
+  $('#contentList').innerHTML = state.contentItems.map((item,idx)=>`
+    <div class="content-item" data-content-index="${idx}">
+      <div class="content-thumb"></div>
+      <div class="content-main">
+        <div class="content-title" contenteditable="${!document.body.classList.contains('recording-mode')}" data-field="title">${item.title}</div>
+        <div class="content-meta" contenteditable="${!document.body.classList.contains('recording-mode')}" data-field="time">${item.time}</div>
+        <div class="content-stats">
+          <span>♡ <span contenteditable="${!document.body.classList.contains('recording-mode')}" data-field="likes">${item.likes}</span></span>
+          <span>◌ <span contenteditable="${!document.body.classList.contains('recording-mode')}" data-field="comments">${item.comments}</span></span>
+          <span>⟳ <span contenteditable="${!document.body.classList.contains('recording-mode')}" data-field="reposts">${item.reposts}</span></span>
+          <span>↗ <span contenteditable="${!document.body.classList.contains('recording-mode')}" data-field="shares">${item.shares}</span></span>
+        </div>
+      </div>
+      <div class="content-views"><span contenteditable="${!document.body.classList.contains('recording-mode')}" data-field="views">${item.views}</span><small>Views</small></div>
+    </div>
+  `).join('');
+  $$('#contentList [data-field]').forEach(el=>{
+    el.oninput = ()=>{ const idx = Number(el.closest('[data-content-index]').dataset.contentIndex); state.contentItems[idx][el.dataset.field] = el.textContent.trim(); };
+    el.onkeydown = e=>{ if(e.key==='Enter'){ e.preventDefault(); el.blur(); } };
+  });
+}
+
+function renderGenderRows(){
+  $('#genderRows').innerHTML = state.gender.map((item,idx)=>`
+    <div class="gender-row" data-gender-index="${idx}">
+      <div>
+        <div class="bar-title" contenteditable="${!document.body.classList.contains('recording-mode')}" data-field="name">${item.name}</div>
+        <div class="bar-track"><div class="bar-fill ${idx===1?'soft':''}" style="width:${item.value}%"></div></div>
+      </div>
+      <div class="bar-value" contenteditable="${!document.body.classList.contains('recording-mode')}" data-field="value">${formatPct(item.value)}</div>
+    </div>
+  `).join('');
+  $$('#genderRows [data-field]').forEach(el=>{
+    el.oninput = ()=>{ const idx = Number(el.closest('[data-gender-index]').dataset.genderIndex); if(el.dataset.field==='name'){ state.gender[idx].name = el.textContent.trim(); } else { state.gender[idx].value = parsePct(el.textContent); el.closest('.gender-row').querySelector('.bar-fill').style.width = state.gender[idx].value + '%'; } };
+    el.onblur = ()=>{ if(el.dataset.field==='value'){ const idx=Number(el.closest('[data-index], [data-gender-index], [data-age-index]')?.dataset.index ?? el.closest('[data-gender-index]')?.dataset.genderIndex ?? el.closest('[data-age-index]')?.dataset.ageIndex); const arr=state.gender; if(arr[idx]) el.textContent=formatPct(arr[idx].value); } };
+    el.onkeydown = e=>{ if(e.key==='Enter'){ e.preventDefault(); el.blur(); } };
+  });
+}
+
+function renderAgeRows(){
+  $('#ageRows').innerHTML = state.ageRanges.map((item,idx)=>{
+    const women = item.value * (item.womenShare/100);
+    const men = Math.max(0, item.value - women);
+    return `
+      <div class="age-row" data-age-index="${idx}">
+        <div class="age-label-row"><span contenteditable="${!document.body.classList.contains('recording-mode')}" data-field="name">${item.name}</span><span contenteditable="${!document.body.classList.contains('recording-mode')}" data-field="value">${formatPct(item.value)}</span></div>
+        <div class="stack"><div class="women" style="width:${women}%"></div><div class="men" style="width:${men}%"></div></div>
+      </div>
+    `;
+  }).join('');
+  $$('#ageRows [data-field]').forEach(el=>{
+    el.oninput = ()=>{ const idx = Number(el.closest('[data-age-index]').dataset.ageIndex); if(el.dataset.field==='name'){ state.ageRanges[idx].name = el.textContent.trim(); } else { state.ageRanges[idx].value = parsePct(el.textContent); const row=el.closest('.age-row'); row.querySelector('.women').style.width = (state.ageRanges[idx].value*state.ageRanges[idx].womenShare/100)+'%'; row.querySelector('.men').style.width = (state.ageRanges[idx].value*(100-state.ageRanges[idx].womenShare)/100)+'%'; } };
+    el.onblur = ()=>{ if(el.dataset.field==='value'){ const idx=Number(el.closest('[data-index], [data-gender-index], [data-age-index]')?.dataset.index ?? el.closest('[data-gender-index]')?.dataset.genderIndex ?? el.closest('[data-age-index]')?.dataset.ageIndex); const arr=state.ageRanges; if(arr[idx]) el.textContent=formatPct(arr[idx].value); } };
+    el.onkeydown = e=>{ if(e.key==='Enter'){ e.preventDefault(); el.blur(); } };
+  });
+}
+
+function renderSimplePercentBars(selector, arr, stateKey){
+  $(selector).innerHTML = arr.map((item,idx)=>`
+    <div class="${stateKey==='topLanguages'?'lang-row':'loc-row'}" data-group="${stateKey}" data-index="${idx}">
+      <div class="age-label-row"><span contenteditable="${!document.body.classList.contains('recording-mode')}" data-field="name">${item.name}</span><span contenteditable="${!document.body.classList.contains('recording-mode')}" data-field="value">${formatPct(item.value)}</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${item.value}%"></div></div>
+    </div>
+  `).join('');
+  $(`${selector}`).querySelectorAll('[data-field]').forEach(el=>{
+    el.oninput = ()=>{
+      const wrap = el.closest('[data-group]');
+      const idx = Number(wrap.dataset.index);
+      const group = wrap.dataset.group;
+      if(el.dataset.field==='name') state[group][idx].name = el.textContent.trim();
+      else { state[group][idx].value = parsePct(el.textContent); wrap.querySelector('.bar-fill').style.width = state[group][idx].value + '%'; }
+    };
+    el.onblur = ()=>{ if(el.dataset.field==='value'){ const idx=Number(el.closest('[data-index], [data-gender-index], [data-age-index]')?.dataset.index ?? el.closest('[data-gender-index]')?.dataset.genderIndex ?? el.closest('[data-age-index]')?.dataset.ageIndex); const arr=state[el.closest('[data-group]').dataset.group]; if(arr[idx]) el.textContent=formatPct(arr[idx].value); } };
+    el.onkeydown = e=>{ if(e.key==='Enter'){ e.preventDefault(); el.blur(); } };
+  });
+}
+
+function renderActiveTimes(){
+  $('#dayPills').innerHTML = state.activeDays.map((d,idx)=>`<button class="day-pill ${idx===state.activeDayIndex?'active':''}" contenteditable="${!document.body.classList.contains('recording-mode')}" data-day-index="${idx}">${d}</button>`).join('');
+  $$('#dayPills .day-pill').forEach(btn=>{
+    btn.onclick = ()=>{ if(editing) return; state.activeDayIndex = Number(btn.dataset.dayIndex); renderActiveTimes(); };
+    btn.oninput = ()=>{ state.activeDays[Number(btn.dataset.dayIndex)] = btn.textContent.trim(); };
+    btn.onkeydown = e=>{ if(e.key==='Enter'){ e.preventDefault(); btn.blur(); } };
+  });
+  $('#hourChart').innerHTML = state.activeTimes.map((item,idx)=>`
+    <div class="hour-col" data-hour-index="${idx}">
+      <div class="hour-bar" style="height:${Math.max(6, item.value*1.8)}px"></div>
+      <div class="hour-label" contenteditable="${!document.body.classList.contains('recording-mode')}" data-field="label">${item.label}</div>
+    </div>
+  `).join('');
+  $$('#hourChart .hour-label').forEach(el=>{
+    el.oninput = ()=>{ state.activeTimes[Number(el.closest('[data-hour-index]').dataset.hourIndex)].label = el.textContent.trim(); };
+    el.onkeydown = e=>{ if(e.key==='Enter'){ e.preventDefault(); el.blur(); } };
+  });
+  $('#whenLines').innerHTML = state.whenMostActive.map((line,idx)=>`<div class="when-line" contenteditable="${!document.body.classList.contains('recording-mode')}" data-when-index="${idx}">${line}</div>`).join('');
+  $$('#whenLines .when-line').forEach(el=>{
+    el.oninput = ()=>{ state.whenMostActive[Number(el.dataset.whenIndex)] = el.textContent.trim(); };
+    el.onkeydown = e=>{ if(e.key==='Enter'){ e.preventDefault(); el.blur(); } };
+  });
+}
+
+function bindFreeText(){
+  freeTextIds.forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    if(state.freeText[id] !== undefined) el.textContent = state.freeText[id];
+    el.contentEditable = !document.body.classList.contains('recording-mode');
+    el.oninput = ()=> state.freeText[id] = el.textContent;
+    el.onkeydown = e=>{ if(e.key==='Enter' && el.tagName!=='DIV' && el.tagName!=='SPAN'){ e.preventDefault(); el.blur(); } };
+  });
+  $$('[data-key]').forEach(el=>{
+    const key = el.dataset.key;
+    if(state.values[key] !== undefined) el.textContent = state.values[key];
+    el.contentEditable = !document.body.classList.contains('recording-mode');
+    el.oninput = ()=>syncValue(key, el.textContent, el);
+    el.onkeydown = e=>{ if(e.key==='Enter'){ e.preventDefault(); el.blur(); } };
+  });
+}
+
+function renderEditorInputs(){
+  const makeInputs = (box, arr, labelPrefix) => {
+    box.innerHTML = arr.map((v,i)=>`<label>${labelPrefix} ${i+1}<input type="number" min="0" max="100" value="${v}" data-pt-index="${i}"></label>`).join('');
+  };
+  makeInputs($('#homeSparkInputs'), state.homeSpark, 'P');
+  makeInputs($('#perfChartInputs'), state.perfChart, 'P');
+  makeInputs($('#audChartInputs'), state.audienceChart, 'P');
+  $('#activeTimeInputs').innerHTML = state.activeTimes.map((item,idx)=>`<label>${item.label}<input type="number" min="0" max="100" value="${item.value}" data-active-index="${idx}"></label>`).join('');
+  $$('#homeSparkInputs input').forEach(input=>input.oninput=()=>{ state.homeSpark[Number(input.dataset.ptIndex)] = clamp(input.value); drawPolyline(state.homeSpark,'#homeSparkLine',280,120,true); });
+  $$('#perfChartInputs input').forEach(input=>input.oninput=()=>{ state.perfChart[Number(input.dataset.ptIndex)] = clamp(input.value); drawPolyline(state.perfChart,'#perfChartLine',540,220,true); });
+  $$('#audChartInputs input').forEach(input=>input.oninput=()=>{ state.audienceChart[Number(input.dataset.ptIndex)] = clamp(input.value); drawPolyline(state.audienceChart,'#audienceChartLine',540,220,true); });
+  $$('#activeTimeInputs input').forEach(input=>input.oninput=()=>{ state.activeTimes[Number(input.dataset.activeIndex)].value = clamp(input.value); renderActiveTimes(); renderEditorInputs(); });
+}
+
+
+// Every field is controlled from the side drawer, rather than the dashboard itself.
+const sidebarSchema = [
+  ['Header & labels', 'freeText'],
+  ['Main numbers', 'values'],
+  ['Home tools', 'tools'],
+  ['Next steps', 'nextSteps'],
+  ['Performance cards', 'perfMetricCards'],
+  ['Audience cards', 'audienceMetricCards'],
+  ['Content filters', 'filters'],
+  ['Interaction filters', 'interactionPills'],
+  ['Views by content type', 'viewsByType'],
+  ['Interactions by content type', 'interactionBars'],
+  ['Profile activity', 'profileActivity'],
+  ['Content list', 'contentItems'],
+  ['Gender', 'gender'],
+  ['Age ranges', 'ageRanges'],
+  ['Countries', 'topLocations'],
+  ['Cities', 'cities'],
+  ['Languages', 'topLanguages'],
+  ['Week days', 'activeDays'],
+  ['Active hours', 'activeTimes'],
+  ['Most active text', 'whenMostActive']
+];
+function sidebarTextField(label, path, value, type='text'){
+  const key = path.map(String).join('.');
+  const el=document.createElement('label'); el.className='sidebar-field';
+  const title=document.createElement('span'); title.textContent=label; el.appendChild(title);
+  const input=document.createElement('input'); input.type=type; input.value=value ?? '';
+  input.dataset.path=JSON.stringify(path); input.setAttribute('aria-label',label);
+  if(type==='number'){ input.step='any'; }
+  input.addEventListener('input',()=>{
+    let obj=state;
+    for(let i=0;i<path.length-1;i++) obj=obj[path[i]];
+    const last=path[path.length-1];
+    obj[last] = type==='number' ? clamp(input.value) : input.value;
+    if(path[0]==='freeText'){
+      const target=document.getElementById(path[1]);
+      if(target) target.textContent=input.value;
+    }
+    renderAll();
+  });
+  el.appendChild(input); return el;
+}
+function renderSidebarFields(){
+  const root=$('#sidebarFields'); root.innerHTML='';
+  const names={name:'Name / smiya',value:'Percentage / value',total:'Displayed number',share:'Bar fill (%)',split:'Followers share (%)',womenShare:'Women share (%)',title:'Title',desc:'Description',label:'Label',change:'Change',icon:'Icon',time:'Time',views:'Views',likes:'Likes',comments:'Comments',reposts:'Reposts',shares:'Shares',active:'Selected',danger:'Warning'};
+  freeTextIds.forEach(id=>{ const el=document.getElementById(id); if(state.freeText[id]===undefined && el) state.freeText[id]=el.textContent; });
+  sidebarSchema.forEach(([heading,key])=>{
+    const details=document.createElement('details'); details.className='sidebar-group';
+    const summary=document.createElement('summary'); summary.textContent=heading; details.appendChild(summary);
+    const body=document.createElement('div'); body.className='sidebar-fields';
+    const collection=state[key];
+    if(Array.isArray(collection)){
+      collection.forEach((item,i)=>{
+        if(item && typeof item==='object'){
+          const card=document.createElement('div'); card.className='sidebar-array-item';
+          const head=document.createElement('strong'); head.textContent=`${i+1}. ${item.name || item.title || item.label || heading}`; card.appendChild(head);
+          const grid=document.createElement('div'); grid.className='sidebar-array-grid';
+          for(const [field,value] of Object.entries(item)){
+            if(typeof value==='boolean') continue;
+            grid.appendChild(sidebarTextField(names[field]||field,[key,i,field],value,typeof value==='number'?'number':'text'));
+          }
+          card.appendChild(grid); body.appendChild(card);
+        } else body.appendChild(sidebarTextField(`${i+1}`, [key,i], item));
+      });
+    } else if(collection && typeof collection==='object'){
+      for(const [field,value] of Object.entries(collection)){
+        body.appendChild(sidebarTextField(field,[key,field],value,typeof value==='number'?'number':'text'));
+      }
+    }
+    details.appendChild(body); root.appendChild(details);
+  });
+}
+
+function renderAll(){
+  applyTheme();
+  renderTools();
+  renderNextSteps();
+  renderMetricCards();
+  renderContentFilters();
+  renderProfileActivity();
+  renderContentList();
+  renderAllBarsOnly();
+  renderActiveTimes();
+  drawPolyline(state.homeSpark, '#homeSparkLine', 280, 120, true);
+  drawPolyline(state.perfChart, '#perfChartLine', 540, 220, true);
+  drawPolyline(state.audienceChart, '#audienceChartLine', 540, 220, true);
+  bindFreeText();
+  renderEditorInputs();
+}
+
+function getState(){
+  // ensure latest editable text captured
+  freeTextIds.forEach(id=>{ const el=document.getElementById(id); if(el) state.freeText[id]=el.textContent; });
+  $$('[data-key]').forEach(el=>{ state.values[el.dataset.key]=el.textContent; });
+  return state;
+}
+function applyState(newState){
+  state = JSON.parse(JSON.stringify(newState));
+  renderAll();
+}
+
+function setEditing(enabled){
+  editing = enabled;
+  renderAll();
+}
+
+$$('.main-tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    $$('.main-tab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    $$('.panel').forEach(p=>p.classList.remove('active'));
+    $('#' + btn.dataset.panel + 'Panel').classList.add('active');
+  });
+});
+
+$('#countriesPill').onclick = ()=>{ state.locationMode='countries'; $('#countriesPill').classList.add('active'); $('#citiesPill').classList.remove('active'); renderAllBarsOnly(); };
+$('#citiesPill').onclick = ()=>{ state.locationMode='cities'; $('#citiesPill').classList.add('active'); $('#countriesPill').classList.remove('active'); renderAllBarsOnly(); };
+
+$('#editBtn').onclick = ()=>{ $('#editor').classList.add('open'); renderSidebarFields(); };
+$('#closeEditor').onclick = ()=>{ $('#editor').classList.remove('open'); }; 
+
+['bg','card','accent','accentSoft'].forEach(key=>{
+  const input = $('#' + (key==='accentSoft'?'accentSoftColor': key + 'Color'));
+  input.oninput = ()=>{ state.colors[key] = input.value; applyTheme(); renderAllBarsOnly(); drawPolyline(state.homeSpark, '#homeSparkLine', 280,120,true); drawPolyline(state.perfChart, '#perfChartLine', 540,220,true); drawPolyline(state.audienceChart, '#audienceChartLine', 540,220,true); };
+});
+
+$('#saveBtn').onclick = ()=>{
+  localStorage.setItem('editableInstagramDashboard', JSON.stringify(getState()));
+  $('#editor').classList.remove('open');
+  setEditing(false);
+  toast('Saved on this device');
+};
+$('#exportBtn').onclick = ()=>{
+  const blob = new Blob([JSON.stringify(getState(), null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'instagram-dashboard-data.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); toast('Data exported');
+};
+$('#importInput').onchange = e=>{
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{ try { applyState(JSON.parse(reader.result)); localStorage.setItem('editableInstagramDashboard', JSON.stringify(state)); toast('Data imported'); } catch(err){ toast('Invalid file'); } };
+  reader.readAsText(file);
+};
+$('#resetBtn').onclick = ()=>{ localStorage.removeItem('editableInstagramDashboard'); localStorage.removeItem('dashboardRecordingMode'); applyState(JSON.parse(JSON.stringify(defaultState))); toast('Reset done'); };
+
+function setRecordingMode(enabled){
+  document.body.classList.toggle('recording-mode', enabled);
+  if(enabled){ $('#editor').classList.remove('open'); setEditing(false); }
+  localStorage.setItem('dashboardRecordingMode', enabled ? '1' : '0');
+  renderAll();
+  toast(enabled ? 'Recording mode enabled' : 'Editing mode restored');
+}
+$('#recordingModeBtn').onclick = ()=>setRecordingMode(true);
+$('#recordingExit').onclick = ()=>setRecordingMode(false);
+let exitTapCount=0, exitTapTimer=null;
+document.addEventListener('touchend', event=>{
+  if(!document.body.classList.contains('recording-mode') || event.changedTouches[0].clientY > 100) return;
+  exitTapCount++; clearTimeout(exitTapTimer);
+  exitTapTimer = setTimeout(()=>exitTapCount=0, 800);
+  if(exitTapCount>=3){ exitTapCount=0; setRecordingMode(false); }
+}, {passive:true});
+
+try {
+  const saved = JSON.parse(localStorage.getItem('editableInstagramDashboard') || 'null');
+  if(saved) state = saved;
+} catch(e){}
+if(localStorage.getItem('dashboardRecordingMode')==='1') document.body.classList.add('recording-mode');
+renderAll();
+</script>
+</body>
+</html>
